@@ -1,0 +1,6 @@
+c:\users\admin\documents\visual studio 2015\Projects\SqlBulkCopy\SqlBulkCopy\bin\Debug\SqlBulkCopy.exe.config
+c:\users\admin\documents\visual studio 2015\Projects\SqlBulkCopy\SqlBulkCopy\bin\Debug\SqlBulkCopy.exe
+c:\users\admin\documents\visual studio 2015\Projects\SqlBulkCopy\SqlBulkCopy\bin\Debug\SqlBulkCopy.pdb
+c:\users\admin\documents\visual studio 2015\Projects\SqlBulkCopy\SqlBulkCopy\obj\Debug\SqlBulkCopy.csprojResolveAssemblyReference.cache
+c:\users\admin\documents\visual studio 2015\Projects\SqlBulkCopy\SqlBulkCopy\obj\Debug\SqlBulkCopy.exe
+c:\users\admin\documents\visual studio 2015\Projects\SqlBulkCopy\SqlBulkCopy\obj\Debug\SqlBulkCopy.pdb
