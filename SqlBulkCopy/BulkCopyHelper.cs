@@ -58,21 +58,17 @@ namespace SqlBulkCopy
 
 				connection.Open();
 
-				SqlCommand totalRowsCountCommand = new SqlCommand(String.Format($"SELECT COUNT(*) FROM TestRuns_Old WHERE Id >= {startId} AND Id <= {endId}"), connection);
-				long totalRows = Convert.ToInt64(totalRowsCountCommand.ExecuteScalar());
+				SqlCommand getLastIdCommand = new SqlCommand(String.Format($"SELECT MAX(Id) FROM TestRuns WHERE Id < {MaxId + 1}"), connection);
 
-				if (totalRows == 0)
+				SqlCommand commandSourceData = new SqlCommand(String.Format($"SELECT * FROM TestRuns_Old WHERE Id >= {startId} AND Id <= {endId} ORDER BY Id ASC"), connection);
+				SqlDataReader reader = commandSourceData.ExecuteReader();
+				if (!reader.HasRows)
 				{
 					Console.WriteLine("No more rows to copy");
 					return false;
 				}
 
-				Console.WriteLine($"Starting partition #{partitionNumber} from {startId} to {endId}. Ready to copy {totalRows} rows:");
-
-				SqlCommand getLastIdCommand = new SqlCommand(String.Format($"SELECT MAX(Id) FROM TestRuns WHERE Id < {MaxId + 1}"), connection);
-
-				SqlCommand commandSourceData = new SqlCommand(String.Format($"SELECT * FROM TestRuns_Old WHERE Id >= {startId} AND Id <= {endId} ORDER BY Id ASC"), connection);
-				SqlDataReader reader = commandSourceData.ExecuteReader();
+				Console.WriteLine($"Starting partition #{partitionNumber} from {startId} to {endId}:");
 
 				using (System.Data.SqlClient.SqlBulkCopy bulkCopy = new System.Data.SqlClient.SqlBulkCopy(_connectionString, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.UseInternalTransaction))
 				{
@@ -82,6 +78,15 @@ namespace SqlBulkCopy
 					bulkCopy.BatchSize = 5000;
 					bulkCopy.BulkCopyTimeout = 0;
 					bulkCopy.EnableStreaming = true;
+
+					bulkCopy.ColumnMappings.Add("Id", "Id"); 
+					bulkCopy.ColumnMappings.Add("Time", "Time");
+					bulkCopy.ColumnMappings.Add("State", "State");
+					bulkCopy.ColumnMappings.Add("Message", "Message");
+					bulkCopy.ColumnMappings.Add("CallStack", "CallStack");
+					bulkCopy.ColumnMappings.Add("Reason", "Reason");
+					bulkCopy.ColumnMappings.Add("SuiteRunId", "SuiteRunId");
+					bulkCopy.ColumnMappings.Add("TestId", "TestId");
 
 					try
 					{
