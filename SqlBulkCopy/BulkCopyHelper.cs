@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 
@@ -15,12 +16,28 @@ namespace SqlBulkCopy
 
 		public void Copy(Options options)
 		{
+			if (options.CopyFrom > options.CopyTo)
+			{
+				Console.WriteLine("ERROR: Start Id is greater than end Id");
+				return;
+			}
+				
+
+			long minId, maxId;
+			GetExistingIdRange(out minId, out maxId);
+
 			long partitionSize = options.PartitionSize;
-			long startId = options.CopyFrom;
+			long startId = CalculateStartId(options.CopyFrom, maxId);
 			long endId = options.CopyTo;
 
 			if (partitionSize != 0)
 				endId = CalculateEndIdFromPartition(startId, partitionSize, options.CopyTo);
+
+			if (Overlapps(minId, maxId, startId, endId))
+			{
+				Console.WriteLine($"ERROR: Specified Id range overlapps with existing records. MIN Id = {minId}, MAX Id = {maxId}");
+				return;
+			}
 
 			int partitionNumber = 1;
 			long lastCopiedId;
@@ -37,6 +54,56 @@ namespace SqlBulkCopy
 					Thread.Sleep(options.Sleep);
 					Console.WriteLine("Resuming work...");
 				}
+			}
+		}
+
+		private bool Overlapps(long minId, long maxId, long startId, long endId)
+		{
+			return Math.Max(minId, startId) <= Math.Min(maxId, endId);
+		}
+
+		private long CalculateStartId(long copyFrom, long maxId)
+		{
+			if (copyFrom > 0)
+				return copyFrom;
+
+			return maxId + 1;
+		}
+
+		private void GetExistingIdRange(out long minId, out long maxId)
+		{
+			minId = 0;
+			maxId = 0;
+
+			SqlConnection connection = new SqlConnection(_connectionString);
+			SqlCommand getLastIdCommand = new SqlCommand(String.Format($"SELECT MIN(Id), MAX(Id) FROM TestRuns WHERE Id < {MaxId + 1}"), connection);
+
+			IDataReader reader = null;
+			try
+			{
+				connection.Open();
+				reader = getLastIdCommand.ExecuteReader();
+				if (reader.Read())
+				{
+					var minValue = reader.GetValue(0);
+					if (minValue != null && minValue != DBNull.Value)
+						minId = Convert.ToInt64(minValue);
+
+					var maxValue = reader.GetValue(1);
+					if (maxValue != null && maxValue != DBNull.Value)
+						maxId = Convert.ToInt64(maxValue);
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				throw;
+			}
+			finally
+			{
+				reader?.Close();
+				connection.Close();
+				connection.Dispose();
 			}
 		}
 

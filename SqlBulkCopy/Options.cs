@@ -12,7 +12,7 @@ namespace SqlBulkCopy
 			{
 				if (_copyFrom != 0)
 					return _copyFrom;
-				return 1;
+				return 0;
 			}
 			set { _copyFrom = value; }
 		}
