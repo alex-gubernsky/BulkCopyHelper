@@ -41,7 +41,7 @@ namespace SqlBulkCopy
 
 			int partitionNumber = 1;
 			long lastCopiedId;
-			while (CopyPartition(startId, endId, partitionNumber, out lastCopiedId))
+			while (CopyPartition(startId, endId, partitionNumber, options.UseTabLock, out lastCopiedId))
 			{
 				startId = lastCopiedId + 1;
 				endId = CalculateEndIdFromPartition(startId, partitionSize, options.CopyTo);
@@ -115,7 +115,7 @@ namespace SqlBulkCopy
 			return endId;
 		}
 
-		private bool CopyPartition(long startId, long endId, int partitionNumber, out long lastCopiedId)
+		private bool CopyPartition(long startId, long endId, int partitionNumber, bool useTablock, out long lastCopiedId)
 		{
 			lastCopiedId = 0;
 			SqlConnection connection = null;
@@ -137,7 +137,11 @@ namespace SqlBulkCopy
 
 				Console.WriteLine($"Starting partition #{partitionNumber} from {startId} to {endId}:");
 
-				using (System.Data.SqlClient.SqlBulkCopy bulkCopy = new System.Data.SqlClient.SqlBulkCopy(_connectionString, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.UseInternalTransaction))
+				SqlBulkCopyOptions options = SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.UseInternalTransaction;
+				if (useTablock)
+					options |= SqlBulkCopyOptions.TableLock;
+
+				using (System.Data.SqlClient.SqlBulkCopy bulkCopy = new System.Data.SqlClient.SqlBulkCopy(_connectionString, options))
 				{
 					bulkCopy.DestinationTableName = "dbo.TestRuns";
 					bulkCopy.SqlRowsCopied += OnSqlRowsCopied;

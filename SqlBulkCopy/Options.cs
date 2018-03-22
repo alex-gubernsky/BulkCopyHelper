@@ -29,5 +29,6 @@ namespace SqlBulkCopy
 		}
 		public long PartitionSize { get; set; }
 		public int Sleep { get; set; }
+		public bool UseTabLock { get; set; }
 	}
 }

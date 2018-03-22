@@ -24,6 +24,12 @@ namespace SqlBulkCopy
 			Options options = new Options();
 			foreach (var s in args)
 			{
+				if (s.Equals("tablock", StringComparison.OrdinalIgnoreCase))
+				{
+					options.UseTabLock = true;
+					continue;
+				}
+
 				string[] paramStrings = s.Split('=');
 				if (paramStrings.Length != 2)
 					continue;
