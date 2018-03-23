@@ -126,8 +126,11 @@ namespace SqlBulkCopy
 				connection.Open();
 
 				SqlCommand getLastIdCommand = new SqlCommand(String.Format($"SELECT MAX(Id) FROM TestRuns WHERE Id < {MaxId + 1}"), connection);
+				getLastIdCommand.CommandTimeout = 60;
 
 				SqlCommand commandSourceData = new SqlCommand(String.Format($"SELECT * FROM TestRuns_Old WHERE Id >= {startId} AND Id <= {endId} ORDER BY Id ASC"), connection);
+				commandSourceData.CommandTimeout = 60;
+
 				SqlDataReader reader = commandSourceData.ExecuteReader();
 				if (!reader.HasRows)
 				{
@@ -163,9 +166,9 @@ namespace SqlBulkCopy
 					{
 						bulkCopy.WriteToServer(reader);
 					}
-					catch (Exception ex)
+					catch (Exception e)
 					{
-						Console.WriteLine(ex);
+						Console.WriteLine($"\n{e}");
 						throw;
 					}
 					finally
@@ -179,7 +182,7 @@ namespace SqlBulkCopy
 						}
 						catch (Exception e)
 						{
-							Console.WriteLine(e);
+							Console.WriteLine($"\n{e}");
 							throw;
 						}
 					}
@@ -189,7 +192,7 @@ namespace SqlBulkCopy
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Console.WriteLine($"\n{e}");
 				throw;
 			}
 			finally
